@@ -29,9 +29,17 @@ def create_ui():
         add_input_text("ticker_input", label="")
         add_button("Fetch Data", callback=fetch_and_display_data)
         add_logger()
+        
+        start_dearpygui()
+        
+        
+        
+    
+    
+    
+    
 
-    start_dearpygui()
-    show_dearpygui()
+    
     
 
     
