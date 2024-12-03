@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 from data_fetcher import fetch_stock_data
 
-def plot_historical_data_with_predictions(data, predictions, ticker):
+def plot_with_predictions(data, predictions, ticker):
     """
     Plot historical stock data for a given ticker alongside predicted data
 
@@ -23,5 +23,3 @@ def plot_historical_data_with_predictions(data, predictions, ticker):
     plt.legend()
     plt.grid()
     plt.show()
-    
-print(plot_historical_data_with_predictions(fetch_stock_data("AAPL"), [240,250,255,275,289,286,277], "AAPL"))
