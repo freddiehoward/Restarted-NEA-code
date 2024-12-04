@@ -14,9 +14,11 @@ def plot_with_predictions(data, predictions, ticker):
         None
     """
     
+    predicted_index = pd.date_range(start=historical_index[-1] + pd.Timedelta(days=1), periods=len(predictions), freq='D')
+    
     plt.figure(figsize=(10, 5))
-    plt.plot(data.index[:len(predictions)], data['Close'][:len(predictions)], label=f"{ticker} Historical Closing Price")
-    plt.plot(data.index[:len(predictions)], predictions, label=f"{ticker} Predicted Prices")
+    plt.plot(data.index, data['Close'], label=f"{ticker} Historical Closing Price")
+    plt.plot(predicted_index, predictions, label=f"{ticker} Predicted Prices")
     plt.title(f"Historical and Predicted Stock Data for {ticker}")
     plt.xlabel("Date")
     plt.ylabel("Price")
