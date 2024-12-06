@@ -6,8 +6,8 @@ def plot_with_predictions(data, predictions, ticker):
     """
     Plot historical stock data for a given ticker alongside predicted data
 
-    Args:
-        data (pandas.DataFrame): DataFrame containing historical stock data.
+    Inputs:
+        data (pandas.DataFrame): DataFrame containing historical stock data in the form: index (date), data 1D.
         ticker (str): Stock ticker symbol.
         predictions(list/array): a list that contains dummy prediction values.
 

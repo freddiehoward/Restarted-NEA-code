@@ -2,7 +2,6 @@ import yfinance as yf
 
 def fetch_stock_data(ticker):
     
-    print(f"inside fetch function, ticker is {ticker}")
     """
     Fetch historical stock data for a given ticker using yfinance.
 
@@ -10,11 +9,11 @@ def fetch_stock_data(ticker):
         ticker (str): Stock ticker symbol.
 
     Returns:
-        pandas.DataFrame: Historical stock data for the past 5 years.
+        pandas.DataFrame: Historical stock data for the past year.
     """
     try:
         stock = yf.Ticker(ticker)
-        data = stock.history(period="5y")
+        data = stock.history(period="1y")
     except Exception as e:
         print(f"error was {e}")
     return data
