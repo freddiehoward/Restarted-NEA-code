@@ -16,5 +16,7 @@ def fetch_stock_data(ticker):
         data = stock.history(period="1y")
     except Exception as e:
         print(f"error was {e}")
+        
+    #data is a pandas dataframe    
     return data
 

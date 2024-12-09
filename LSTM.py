@@ -6,7 +6,7 @@ class LSTM(nn.Module):
     """
     LSTM model for time-series prediction.
     """
-    def __init__(self, input_size, hidden_size, output_size, num_layers=1):
+    def __init__(self, input_size=1, hidden_size=50, output_size=1, num_layers=1):
         
         super(LSTM, self).__init__()
         #super is initialising the nn.Module class as this parent class sets up all
@@ -23,7 +23,7 @@ class LSTM(nn.Module):
             x (torch.Tensor): Input tensor of shape (batch_size, seq_len, input_size), is a singular batch
 
         Returns:
-            torch.Tensor: Output tensor of shape (batch_size, output_size). 1 output per sequence in the batch
+            torch.Tensor: Output tensor of shape (batch_size, 1, output_size). 1 output per sequence in the batch
         """
         
         
@@ -32,8 +32,10 @@ class LSTM(nn.Module):
         #define it/call it again in the LSTM class
         #out is the hidden state of each timestep in each sequence in a batch
         #the second output of self.lstm(x) is the hidden state and cell state of the last timestep of each sequence in a batch
+        #which I don't need for now
         
-        #shape of out is (batch_size, sequence_length, input_size)
+        #shape of out from LSTM is (batch_size, sequence_length, hidden_size)
+        #ie the shape of out from the model is (batch_size, sequence_length, 50)? dunno
         #since we only want the final hidden state value of each sequence, the code below achieves this with -1 meaning the final value
         out = self.fc(out[:, -1, :])
         
@@ -85,8 +87,8 @@ def train_lstm(X_train, y_train, input_size=1, hidden_size=50, output_size=1, nu
             optimizer.zero_grad()
             outputs = model(X_batch)
             
-            #squeeze removes dimesnions with a value of 1 ie outputs.shape is (batch_size, 1, input_size),
-            #after squeeze it is (batch_size, input_size), which matches y_train.shape so we can calculate
+            #squeeze removes dimesnions with a value of 1 ie outputs.shape is (batch_size, 1, hidden_size),
+            #after squeeze it is (batch_size, hidden_size), which matches y_train.shape so we can calculate
             #the loss
             loss = criterion(outputs.squeeze(), y_batch)
             

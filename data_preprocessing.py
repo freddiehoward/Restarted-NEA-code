@@ -13,7 +13,8 @@ def scaling_and_reshaping_raw_data(data):
     '''
     
     
-    # Scale the 'Close' prices to a range between 0 and 1, WHY?
+    # Scale the 'Close' prices to a range between 0 and 1, to keep them within sensitive ranges for activation functions
+    #which aren't sensitive to changes at extreme values eg the sigmoid function
     scaler = MinMaxScaler(feature_range=(0, 1))
     
     #fit_transform?
@@ -23,14 +24,10 @@ def scaling_and_reshaping_raw_data(data):
     return scaled_data, scaler
     
 
-
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-#MAY BE OK TO REMOVE
-#import pandas as pd
-
-def sequence_scaled_and_reshaped_data(scaled_data, scaler, sequence_length=60):
+def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=60):
     """
     Preprocess stock data for LSTM model training.
 
@@ -54,16 +51,35 @@ def sequence_scaled_and_reshaped_data(scaled_data, scaler, sequence_length=60):
         y_sequenced.append(scaled_data[i, 0])
 
     X_sequenced, y_sequenced = np.array(X_sequenced), np.array(y_sequenced)
+    
     X_sequenced = np.reshape(X_sequenced, (X_sequenced.shape[0], X_sequenced.shape[1], 1))  # Reshape for LSTM input
+    y_sequenced = np.reshape(y_sequenced, (y_sequenced.shape[0], 1, 1))  # Reshape expected output
 
     # Split into training and testing sets randomly, degree of randomness is random_state value
+    
+    return X_sequenced, y_sequenced
+    
+
+def split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced):
+    """
+    Split the sequenced data into training and testing sets.
+    
+    Inputs:
+        X_sequenced (numpy.ndarray): Sequenced input data. shape(num_data_points, sequence_length, input_size)
+        y_sequenced (numpy.ndarray): Target data. shape(num_data_points, sequence_length, output_size)
+        
+    Returns:
+        3D and 2D arrays: Sequenced training and testing data (X_train, X_test, y_train, y_test).
+    
+    """
     X_train, X_test, y_train, y_test = train_test_split(X_sequenced, y_sequenced, test_size=0.2, random_state=42)
     
 
-    return X_train, X_test, y_train, y_test, scaler
+    return X_train, X_test, y_train, y_test
+    
 
 
-def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y, batch_size):
+def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y_sequenced, num_of_sequences):
     
     #X_sequenced and y_sequenced must have already been split into sequences
     
@@ -78,15 +94,15 @@ def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y, batch_size):
     Returns:
         list: List of arrays, where each array contains a batch of [X_batch, y_batch].
     """
-    n_sequences = X.shape[0]
+    n_sequences = X_sequenced.shape[0]
     batches = []
     
-    for i in range(0, n_sequences, batch_size):
+    for i in range(0, n_sequences, num_of_sequences):
         
         
-        X_batch = X_sequenced[i:i + batch_size]
+        X_batch = X_sequenced[i:i + num_of_sequences]
         
-        y_batch = y[i:i + batch_size]
+        y_batch = y_sequenced[i:i + num_of_sequences]
         
         batches.append([X_batch, y_batch])
         
