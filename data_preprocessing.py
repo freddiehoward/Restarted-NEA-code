@@ -1,15 +1,16 @@
 
 from sklearn.preprocessing import MinMaxScaler
+from data_fetcher import fetch_stock_data
 
 
 def scaling_and_reshaping_raw_data(data):
     
     '''
     Inputs:
-        data (pandas.DataFrame): Stock data with a 'Close' column. Unsequenced
+        data (pandas.DataFrame): Stock 'Close' data. Unsequenced
         
     Outputs:
-        scaled_data (pandas.DataFrame): Scaled Stock data with a 'Close' column. Unsequenced
+        scaled_data (pandas.DataFrame): Scaled Stock data. Unsequenced
     '''
     
     
@@ -18,7 +19,7 @@ def scaling_and_reshaping_raw_data(data):
     scaler = MinMaxScaler(feature_range=(0, 1))
     
     #fit_transform?
-    scaled_data = scaler.fit_transform(data['Close'].values.reshape(-1, 1))
+    scaled_data = scaler.fit_transform(data.values.reshape(-1, 1))
     #scaled data is now 2D
     
     return scaled_data, scaler
@@ -27,7 +28,7 @@ def scaling_and_reshaping_raw_data(data):
 import numpy as np
 from sklearn.model_selection import train_test_split
 
-def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=60):
+def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=50):
     """
     Preprocess stock data for LSTM model training.
 
@@ -43,6 +44,10 @@ def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=60):
     #eg seq_length = 2
     #eg X_sequenced = [[[0.45], [0.23]], [[0.23], [0.11]], [[0.11], [-0.19]], [[-0.19], [-0.13]], [[-0.13], [-0.15]]]
     #eg y_sequenced = [[0.11], [-0.19], [-0.13], [-0.15]]
+
+    if len(scaled_data)<61:
+        print("data is too small")
+        return None, None
 
     # Create sequences of data
     X_sequenced, y_sequenced = [], []
@@ -77,9 +82,9 @@ def split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced):
 
     return X_train, X_test, y_train, y_test
     
+'''
 
-
-def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y_sequenced, num_of_sequences):
+def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y_sequenced, num_of_sequences=10):
     
     #X_sequenced and y_sequenced must have already been split into sequences
     
@@ -107,6 +112,33 @@ def batch_scaled_sequenced_and_reshaped_data(X_sequenced, y_sequenced, num_of_se
         batches.append([X_batch, y_batch])
         
     return batches
+'''
 
+import numpy
+import torch
 
+def fetched_data_to_sequenced_data_without_scaler(ticker):
+    fetched_stock_data = fetch_stock_data(ticker)
+    scaled_and_reshaped_data, _ = scaling_and_reshaping_raw_data(fetched_stock_data)
+    X_sequenced, y_sequenced = sequence_scaled_and_reshaped_data(scaled_and_reshaped_data)
+    X_train, X_test, y_train, y_test = split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced)
+    X_train = torch.tensor(X_train, dtype=torch.float32)
+    y_train = torch.tensor(y_train, dtype=torch.float32)
+    X_test = torch.tensor(X_test, dtype=torch.float32)
+    y_test = torch.tensor(y_test, dtype=torch.float32)
+    
+    return X_train, y_train, X_test, y_test
 
+def fetched_data_to_sequenced_data_with_scaler(ticker):
+    fetched_stock_data = fetch_stock_data(ticker)
+    scaled_and_reshaped_data, scaler = scaling_and_reshaping_raw_data(fetched_stock_data)
+    X_sequenced, y_sequenced = sequence_scaled_and_reshaped_data(scaled_and_reshaped_data)
+    X_train, X_test, y_train, y_test = split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced)
+    X_train = torch.tensor(X_train, dtype=torch.float32)
+    y_train = torch.tensor(y_train, dtype=torch.float32)
+    X_test = torch.tensor(X_test, dtype=torch.float32)
+    y_test = torch.tensor(y_test, dtype=torch.float32)
+    
+    return X_train, y_train, X_test, y_test, scaler
+    
+    

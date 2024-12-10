@@ -14,8 +14,10 @@ def fetch_stock_data(ticker):
     try:
         stock = yf.Ticker(ticker)
         data = stock.history(period="1y")
+        data = data['Close']
     except Exception as e:
         print(f"error was {e}")
+        return None
         
     #data is a pandas dataframe    
     return data

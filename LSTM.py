@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from data_preprocessing import create_batches
+from data_preprocessing import fetched_data_to_sequenced_data_without_scaler
 
 class LSTM(nn.Module):
     """
@@ -31,19 +31,28 @@ class LSTM(nn.Module):
         #self.lstm(x) runs the forward function defined in nn.Module but it is clearer if I effectively
         #define it/call it again in the LSTM class
         #out is the hidden state of each timestep in each sequence in a batch
+        #out should have shape (num_sequences, sequence_length, hidden_size) = (len(batched_data[0]), 50, 50)
+        #btw i arbitrarily decided that 50 would be a suitable length for sequences, given that I intend to use 1 year of data
+        #meaning roughly 250 days of data (no weekends or bank holidays)
         #the second output of self.lstm(x) is the hidden state and cell state of the last timestep of each sequence in a batch
-        #which I don't need for now
+        #which I don't need for now, so I don't store it in a variable
         
-        #shape of out from LSTM is (batch_size, sequence_length, hidden_size)
-        #ie the shape of out from the model is (batch_size, sequence_length, 50)? dunno
-        #since we only want the final hidden state value of each sequence, the code below achieves this with -1 meaning the final value
+        #since we only want the final hidden state value of each sequence, not the hidden state values for each timestep
+        #the code below achieves this, with -1 meaning the final value
         out = self.fc(out[:, -1, :])
+        
+        #ie the shape of out from the model should be (num_of_sequences, length_of_output_sequence, output_size)(num_of_sequences, 1, 1)
+        #this is because for each sequence we want a prediction one day into the future, hence the first and second dimension,
+        #and we only want the close price in the prediction hence the third dimension
+        
+        #may need to reshape the output
+        out = out.reshape(-1,1,1)
         
         return out
     
 
 
-def train_lstm(X_train, y_train, input_size=1, hidden_size=50, output_size=1, num_epochs=20):
+def train_lstm(X_train, y_train, input_size=1, hidden_size=50, output_size=1, num_epochs=200):
     """
     Train an LSTM model on provided training data.
 
@@ -77,30 +86,25 @@ def train_lstm(X_train, y_train, input_size=1, hidden_size=50, output_size=1, nu
         
         epoch_loss = 0.0
         #resets the loss after each epoch otherwise the loss would accumulate every epoch so logs would be incorrect
-
-        # Create batches manually
-        training_batches = create_batches(X_train, y_train, batch_size=32)
-
-        for X_batch, y_batch in training_batches:
-            
-            #Zero the gradients
-            optimizer.zero_grad()
-            outputs = model(X_batch)
-            
-            #squeeze removes dimesnions with a value of 1 ie outputs.shape is (batch_size, 1, hidden_size),
-            #after squeeze it is (batch_size, hidden_size), which matches y_train.shape so we can calculate
-            #the loss
-            loss = criterion(outputs.squeeze(), y_batch)
-            
-            #Computes the gradients of the loss with respect to all model parameters.
-            loss.backward()
-            
-            #changes the model parameters using the calculated gradients above
-            optimizer.step()
-            epoch_loss += loss.item()
+    
+        #Zero the gradients
+        optimizer.zero_grad()
+        outputs = model(X_train)
+        
+        #squeeze removes dimesnions with a value of 1 ie outputs.shape is (batch_size, 1, hidden_size),
+        #after squeeze it is (batch_size, hidden_size), which matches y_train.shape so we can calculate
+        #the loss
+        loss = criterion(outputs, y_train)
+        
+        #Computes the gradients of the loss with respect to all model parameters.
+        loss.backward()
+        
+        #changes the model parameters using the calculated gradients above
+        optimizer.step()
+        epoch_loss += loss.item()
 
         # Log the loss for the epoch
         if (epoch + 1) % 5 == 0:
-            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss / len(batches):.4f}")
+            print(f"Epoch [{epoch+1}/{num_epochs}], Loss: {epoch_loss:.4f}")
 
     return model
