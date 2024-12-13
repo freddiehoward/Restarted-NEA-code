@@ -53,6 +53,8 @@ def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=50):
     X_sequenced, y_sequenced = [], []
     for i in range(sequence_length, len(scaled_data)):
         X_sequenced.append(scaled_data[i-sequence_length:i, 0])
+        
+        #i, 0 is the same as [i][0] just for numpy arrays
         y_sequenced.append(scaled_data[i, 0])
 
     X_sequenced, y_sequenced = np.array(X_sequenced), np.array(y_sequenced)
@@ -64,7 +66,7 @@ def sequence_scaled_and_reshaped_data(scaled_data, sequence_length=50):
     
     return X_sequenced, y_sequenced
     
-
+'''
 def split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced):
     """
     Split the sequenced data into training and testing sets.
@@ -81,6 +83,8 @@ def split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced):
     
 
     return X_train, X_test, y_train, y_test
+    
+'''
     
 '''
 
@@ -121,24 +125,36 @@ def fetched_data_to_sequenced_data_without_scaler(ticker):
     fetched_stock_data = fetch_stock_data(ticker)
     scaled_and_reshaped_data, _ = scaling_and_reshaping_raw_data(fetched_stock_data)
     X_sequenced, y_sequenced = sequence_scaled_and_reshaped_data(scaled_and_reshaped_data)
+    
+    X_sequenced = torch.tensor(X_sequenced, dtype = torch.float32)
+    y_sequenced = torch.tensor(y_sequenced, dtype = torch.float32)
+    
+    '''
     X_train, X_test, y_train, y_test = split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced)
     X_train = torch.tensor(X_train, dtype=torch.float32)
     y_train = torch.tensor(y_train, dtype=torch.float32)
     X_test = torch.tensor(X_test, dtype=torch.float32)
     y_test = torch.tensor(y_test, dtype=torch.float32)
+    '''
     
-    return X_train, y_train, X_test, y_test
+    return X_sequenced, y_sequenced
 
 def fetched_data_to_sequenced_data_with_scaler(ticker):
     fetched_stock_data = fetch_stock_data(ticker)
     scaled_and_reshaped_data, scaler = scaling_and_reshaping_raw_data(fetched_stock_data)
     X_sequenced, y_sequenced = sequence_scaled_and_reshaped_data(scaled_and_reshaped_data)
+    
+    X_sequenced = torch.tensor(X_sequenced, dtype = torch.float32)
+    y_sequenced = torch.tensor(y_sequenced, dtype = torch.float32)
+    
+    '''
     X_train, X_test, y_train, y_test = split_sequenced_data_into_test_and_train(X_sequenced, y_sequenced)
     X_train = torch.tensor(X_train, dtype=torch.float32)
     y_train = torch.tensor(y_train, dtype=torch.float32)
     X_test = torch.tensor(X_test, dtype=torch.float32)
     y_test = torch.tensor(y_test, dtype=torch.float32)
+    '''
     
-    return X_train, y_train, X_test, y_test, scaler
+    return X_sequenced, y_sequenced, scaler
     
     
