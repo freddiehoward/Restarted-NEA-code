@@ -6,6 +6,7 @@ from historical_and_predicted_data_plotter import plot_with_predictions
 import torch
 import pandas as pd
 import numpy
+from prediction_recommendation import recommend_action
 
 
 st.title("Stock Predictor UI")
@@ -115,8 +116,12 @@ if st.button("make prediction"):
         
         st.pyplot(fig)
         
+        st.write("RECOMMENDED ACTION IS: ", recommend_action(fetched_data[-1], prediction))
+        
     else:
         st.write("please enter ticker first")
+        
+        
 
 
 
